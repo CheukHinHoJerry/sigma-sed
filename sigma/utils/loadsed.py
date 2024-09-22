@@ -29,14 +29,14 @@ class SEDDataset(BaseDataset):
         self.base_dataset.data = self.base_dataset.data**(1 / n_root)
         # dp_height, dp_width = self.base_dataset.data.shape[2]
         self.nav_img = Signal2D(self.base_dataset.data.sum(axis = (-1, -2)))
+        self.base_dataset.unit = unit
+        self.base_dataset.beam_energy = beam_energy
+        self.base_dataset.set_ai()
         # do radial integral here
         print("computing radial average")
         if integral_type == "radial":
             self.spectra = self.base_dataset.radial_average()
         elif integral_type == "azimuthal":
-            self.base_dataset.unit = unit
-            self.base_dataset.beam_energy = beam_energy
-            self.base_dataset.set_ai()
             self.spectra = self.base_dataset.get_azimuthal_integral1d(inplace = False, npt = npt)
         else:
             ValueError("integral type not found")
