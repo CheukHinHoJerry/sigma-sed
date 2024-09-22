@@ -23,26 +23,22 @@ from .base import BaseDataset
 #     return [radial_integral(img2d, r) for r in r_list]
 
 class SEDDataset(BaseDataset):
-    def __init__(self, file_path: str, cube_root = False):
+    def __init__(self, file_path: str, n_root = 1):
         super().__init__(file_path)
-        #print(file_path)
-        # self.base_dataset = hs.load(file_path)
-        # self.nav_img = None
-        # self.spectra = None
-        # self.original_nav_img = None
-        # self.original_spectra = None
-        # self.nav_img_bin = None
-        # self.spectra_bin = None
-        # self.spectra_raw = None
-        # self.feature_list = []
-        # self.feature_dict = {}
-        # ===
+
+        self.base_dataset.data = self.base_dataset.data**(1 / n_root)
+        # dp_height, dp_width = self.base_dataset.data.shape[2]
+
         self.nav_img = Signal2D(self.base_dataset.data.sum(axis = (-1, -2)))
         # do radial integral here
+        print("computing radial average")
         self.spectra = self.base_dataset.radial_average()
         self.spectra.change_dtype("float32")
         self.spectra_raw = self.spectra.deepcopy()
         # feature list and feature dict seems not used???
+        self.feature_list = ["Default"]
+        self.feature_dict = {el: i for (i, el) in enumerate(self.feature_list)}
+
 
     def set_axes_scale(self, scale:float):
         """

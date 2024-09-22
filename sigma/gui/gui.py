@@ -607,12 +607,20 @@ def check_latent_space(ps: PixelSegmenter, ratio_to_be_shown=0.25, show_map=Fals
     domain = [i for i in range(ps.n_components)]
     range_ = phase_colors
 
-    latent, dataset, feature_list, labels = (
-        ps.latent,
-        ps.dataset.normalised_elemental_data,
-        ps.dataset.feature_list,
-        ps.labels,
-    )
+    if hasattr(ps.dataset, "normalised_elemental_data"):
+        latent, dataset, feature_list, labels = (
+            ps.latent,
+            ps.dataset.normalised_elemental_data,
+            ps.dataset.feature_list,
+            ps.labels,
+        )
+    else:
+        latent, dataset, feature_list, labels = (
+            ps.latent,
+            np.sum(ps.dataset.spectra.data, axis = -1).reshape(ps.width, ps.height, 1),
+            ps.dataset.feature_list,
+            ps.labels,
+        )
     x_id, y_id = np.meshgrid(range(ps.width), range(ps.height))
     x_id = x_id.ravel().reshape(-1, 1)
     y_id = y_id.ravel().reshape(-1, 1)
@@ -624,6 +632,8 @@ def check_latent_space(ps: PixelSegmenter, ratio_to_be_shown=0.25, show_map=Fals
         intensity_map = ps.dataset.intensity_map if ps.dataset.intensity_map_bin is None else ps.dataset.intensity_map_bin 
         z_id = (intensity_map / intensity_map.max()).reshape(-1, 1)
 
+    print(x_id.shape)
+    print(dataset.shape)
     combined = np.concatenate(
         [
             x_id,
@@ -644,11 +654,18 @@ def check_latent_space(ps: PixelSegmenter, ratio_to_be_shown=0.25, show_map=Fals
     else:
         sampled_combined = combined
 
-    source = pd.DataFrame(
+    if len(feature_list) == 0:
+        source = pd.DataFrame(
         sampled_combined,
         columns=["x_id", "y_id", "z_id", "x", "y"] + feature_list + ["Cluster_id"],
         index=pd.RangeIndex(0, sampled_combined.shape[0], name="pixel"),
-    )
+        ) 
+    else:
+        source = pd.DataFrame(
+        sampled_combined,
+        columns=["x_id", "y_id", "z_id", "x", "y"] + feature_list + ["Cluster_id"],
+        index=pd.RangeIndex(0, sampled_combined.shape[0], name="pixel"),
+        )
     alt.data_transformers.disable_max_rows()
 
     # Brush

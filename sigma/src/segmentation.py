@@ -97,12 +97,16 @@ class PixelSegmenter(object):
             
         ### calculate cluster probability maps ###
         means = []
+        means_1d = []
         dataset_ravel = self.dataset_norm.reshape(-1, self.dataset_norm.shape[2], self.dataset_norm.shape[3])
-        
+        dataset_ravel1d = self.spectra.data.reshape(-1, self.spectra.data.shape[-1])
         for i in range(self.n_components):
             mean = dataset_ravel[np.where(self.labels == i)[0]].mean(axis=0)
+            mean_1d = dataset_ravel1d[np.where(self.labels == i)[0]].mean(axis=0)
             means.append(mean.reshape(1, -1))
+            means_1d.append(mean_1d.reshape(1, -1))
         mu = np.concatenate(means, axis=0)
+        mu1d = np.concatenate(means_1d, axis=0)
 
         if self.method in ["GaussianMixture", "BayesianGaussianMixture"]:
             self.prob_map = self.model.predict_proba(self.latent)
@@ -110,6 +114,7 @@ class PixelSegmenter(object):
             self.prob_map = self.model.probabilities_
 
         self.mu = mu
+        self.mu1d = mu1d
 
         ### Calcuate peak_dict ###
         self.peak_dict = dict()
@@ -515,7 +520,10 @@ class PixelSegmenter(object):
 
         fig, axs = plt.subplots(1, 1, figsize=(3, 3), dpi=150)
         label = self.labels
-
+        if self.latent.shape[1] > 2:
+            print("Size of latent dimension > 2. To be implemented \
+                   visualization with UMAP features")
+            return fig
         if color:
             axs.scatter(
                 self.latent[:, 0],
@@ -676,6 +684,20 @@ class PixelSegmenter(object):
         cbar.outline.set_visible(False)
         cbar.ax.tick_params(labelsize=10, size=0)
 
+        # for SED data
+        _vv = 5e-1
+        if "Default" in self.dataset.feature_list:
+            # plot sum of DP
+            axs[1].imshow(self.mu[cluster_num].reshape(128, 128), cmap='viridis', vmax = _vv)
+            
+            # plot sum of spectrum
+            axs[2].plot(
+                range(len(self.mu1d[cluster_num])),
+                self.mu1d[cluster_num], 
+                )
+            return fig
+
+        # else 
         if self.n_components <= 10:
             axs[1].bar(
                 self.dataset.feature_list,
