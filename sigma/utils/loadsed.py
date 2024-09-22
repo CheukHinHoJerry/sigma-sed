@@ -23,16 +23,24 @@ from .base import BaseDataset
 #     return [radial_integral(img2d, r) for r in r_list]
 
 class SEDDataset(BaseDataset):
-    def __init__(self, file_path: str, n_root = 1):
+    def __init__(self, file_path: str, n_root = 1, integral_type = "radial", unit = "k_A^-1", beam_energy = 200, npt = 100):
         super().__init__(file_path)
 
         self.base_dataset.data = self.base_dataset.data**(1 / n_root)
         # dp_height, dp_width = self.base_dataset.data.shape[2]
-
         self.nav_img = Signal2D(self.base_dataset.data.sum(axis = (-1, -2)))
         # do radial integral here
         print("computing radial average")
-        self.spectra = self.base_dataset.radial_average()
+        if integral_type == "radial":
+            self.spectra = self.base_dataset.radial_average()
+        elif integral_type == "azimuthal":
+            self.base_dataset.unit = unit
+            self.base_dataset.beam_energy = beam_energy
+            self.base_dataset.set_ai()
+            self.spectra = self.base_dataset.get_azimuthal_integral1d(inplace = False, npt = npt)
+        else:
+            ValueError("integral type not found")
+
         self.spectra.change_dtype("float32")
         self.spectra_raw = self.spectra.deepcopy()
         # feature list and feature dict seems not used???
