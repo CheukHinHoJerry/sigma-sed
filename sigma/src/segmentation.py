@@ -688,7 +688,8 @@ class PixelSegmenter(object):
         _vv = 5e-1
         if "Default" in self.dataset.feature_list:
             # plot sum of DP
-            axs[1].imshow(self.mu[cluster_num].reshape(128, 128), cmap='viridis', vmax = _vv)
+            w = int(np.sqrt(len(self.mu[cluster_num])))
+            axs[1].imshow(self.mu[cluster_num].reshape(w, w), cmap='viridis', vmax = _vv)
             
             # plot sum of spectrum
             axs[2].plot(
