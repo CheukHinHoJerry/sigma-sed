@@ -24,7 +24,9 @@ conda activate sigma
 
 2. Install **SIGMA** with [**pip**](https://pypi.org/project/pip/):
 ```bash
-pip install emsigma
+git clone https://github.com/CheukHinHoJerry/sigma-sed.git
+cd sigma-sed
+pip install .
 ```
 
 3. Use the notebook in the tutorial folder to run **SIGMA**.

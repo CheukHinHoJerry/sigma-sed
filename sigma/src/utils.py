@@ -21,8 +21,11 @@ def same_seeds(seed):
 class FeatureDataset(Dataset):
     def __init__(self, dataset: np, setname: str, noise=None):
 
-        if len(dataset.shape) != 2:
+        if len(dataset.shape) == 3:
             dataset = dataset.reshape(-1, dataset.shape[-1])
+        elif len(dataset.shape) == 4:
+            print("using 2D data")
+            dataset = dataset.reshape(-1, 1, dataset.shape[-2], dataset.shape[-1])
 
         # split train/test set if in training mode
         assert setname in ["train", "test", "all"]
