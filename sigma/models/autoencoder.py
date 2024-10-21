@@ -148,8 +148,7 @@ class VariationalAutoEncoder2D(nn.Module):
         encoder_out = self.encoder_conv(x)
         encoder_out = encoder_out.view(batch_size, -1)  # Flatten
         mu = self.fc_mu(encoder_out)
-        logvar = self.fc_logvar(encoder_out)
-        return mu, logvar
+        return mu
 
     def _decode(self, z):
         decoder_input = self.decoder_fc(z)
@@ -158,7 +157,11 @@ class VariationalAutoEncoder2D(nn.Module):
         return x_recon
 
     def forward(self, x):
-        mu, logvar = self._encode(x)
+        batch_size = x.size(0)
+        encoder_out = self.encoder_conv(x)
+        encoder_out = encoder_out.view(batch_size, -1)  # Flatten
+        mu = self.fc_mu(encoder_out)
+        logvar = self.fc_logvar(encoder_out)
         z = self.reparameterize(mu, logvar)
         x_recon = self._decode(z)
         return mu, logvar, z, x_recon
