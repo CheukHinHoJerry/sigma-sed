@@ -42,7 +42,10 @@ class Experiment(object):
 
         # Set Model
         self.model_name = model.__name__
-        self.model = model(in_channel=self.chosen_dataset[0].shape[-1], **model_args)
+        if "2D" in self.model_name:
+            self.model = model(in_channel=1, **model_args)
+        else:
+            self.model = model(in_channel=self.chosen_dataset[0].shape[-1], **model_args)
         print("num_parameters:", sum(p.numel() for p in self.model.parameters()))
         self.model.to(self.device)
         self.optimizer = Adam(self.model.parameters())
@@ -204,6 +207,10 @@ class Experiment(object):
             epoch_loss = self.iterate_through_batches_VAE(
                 self.model, dataloader, epoch, training=True
             )
+        elif self.model_name == "VariationalAutoEncoder2D":
+            epoch_loss = self.iterate_through_batches_VAE(
+                self.model, dataloader, epoch, training=True
+            )
 
         self.train_loss[epoch] = epoch_loss
 
@@ -215,6 +222,10 @@ class Experiment(object):
                     self.model, dataloader, epoch, training=False
                 )
             elif self.model_name == "VariationalAutoEncoder":
+                epoch_loss = self.iterate_through_batches_VAE(
+                    self.model, dataloader, epoch, training=False
+                )
+            elif self.model_name == "VariationalAutoEncoder2D":
                 epoch_loss = self.iterate_through_batches_VAE(
                     self.model, dataloader, epoch, training=False
                 )
